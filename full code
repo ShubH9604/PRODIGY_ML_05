@@ -1,0 +1,400 @@
+import numpy as np
+import pandas as pd
+from pathlib import Path
+import os
+import matplotlib.pyplot as plt
+import tensorflow as tf
+from tensorflow.keras.preprocessing.image import load_img, img_to_array
+
+print(tf.__version__)
+
+# Define the dataset path
+dataset_path = 'D:/MACHINE LEARNING'
+
+for dirname, _, filenames in os.walk(dataset_path):
+    for filename in filenames:
+        print(os.path.join(dirname, filename))
+
+
+
+        # Create a list with the filepaths for training and testing
+train_dir = Path(os.path.join(dataset_path, 'train'))
+train_filepaths = list(train_dir.glob(r'**/*.jpg'))
+
+
+
+test_dir = Path(os.path.join(dataset_path, 'test'))
+test_filepaths = list(test_dir.glob(r'**/*.jpg'))
+
+
+
+val_dir = Path(os.path.join(dataset_path, 'validation'))
+val_filepaths = list(val_dir.glob(r'**/*.jpg'))
+
+
+
+def image_processing(filepath):
+    """ Create a DataFrame with the filepath and the labels of the pictures
+    """
+
+    labels = [str(filepath[i]).split("/")[-2] \
+              for i in range(len(filepath))]
+
+    filepath = pd.Series(filepath, name='Filepath').astype(str)
+    labels = pd.Series(labels, name='Label')
+
+    # Concatenate filepaths and labels
+    df = pd.concat([filepath, labels], axis=1)
+
+    # Shuffle the DataFrame and reset index
+    df = df.sample(frac=1).reset_index(drop = True)
+    
+    return df
+
+
+
+    import os
+
+def image_processing(filepath):
+    """Create a DataFrame with the filepath and the labels of the pictures"""
+    labels = []
+    for file in filepath:
+        parts = os.path.normpath(file).split(os.sep)
+        if len(parts) > 1:
+            labels.append(parts[-2])
+        else:
+            labels.append("Unknown")
+
+    filepath = pd.Series(filepath, name='Filepath').astype(str)
+    labels = pd.Series(labels, name='Label')
+
+    # Concatenate filepaths and labels
+    df = pd.concat([filepath, labels], axis=1)
+
+    # Shuffle the DataFrame and reset index
+    df = df.sample(frac=1).reset_index(drop=True)
+    
+    return df
+
+train_df = image_processing(train_filepaths)
+test_df = image_processing(test_filepaths)
+val_df = image_processing(val_filepaths)
+
+
+
+print('-- Training set --\n')
+print(f'Number of pictures: {train_df.shape[0]}\n')
+print(f'Number of different labels: {len(train_df.Label.unique())}\n')
+print(f'Labels: {train_df.Label.unique()}')
+
+
+
+print('-- Training set --\n')
+print(f'Number of pictures: {train_df.shape[0]}\n')
+print(f'Number of different labels: {len(train_df.Label.unique())}\n')
+print(f'Labels: {train_df.Label.unique()}')
+
+
+
+df_unique = train_df.copy().drop_duplicates(subset=["Label"]).reset_index()
+
+# Determine the number of unique labels
+num_unique_labels = df_unique.shape[0]
+
+# Set up a grid for displaying images
+fig, axes = plt.subplots(nrows=6, ncols=6, figsize=(8, 7),
+                         subplot_kw={'xticks': [], 'yticks': []})
+
+# Flatten the axes array for easy iteration
+axes = axes.flatten()
+
+# Loop over the unique labels and display their corresponding images
+for i in range(min(len(axes), num_unique_labels)):
+    ax = axes[i]
+    ax.imshow(plt.imread(df_unique.Filepath[i]))
+    ax.set_title(df_unique.Label[i], fontsize=12)
+
+# Hide any remaining subplots if there are fewer labels than subplots
+for j in range(num_unique_labels, len(axes)):
+    axes[j].axis('off')
+
+plt.tight_layout(pad=0.5)
+plt.show()
+
+
+
+train_generator = tf.keras.preprocessing.image.ImageDataGenerator(
+    preprocessing_function=tf.keras.applications.mobilenet_v2.preprocess_input
+)
+
+test_generator = tf.keras.preprocessing.image.ImageDataGenerator(
+    preprocessing_function=tf.keras.applications.mobilenet_v2.preprocess_input
+)
+
+
+
+train_images = train_generator.flow_from_dataframe(
+    dataframe=train_df,
+    x_col='Filepath',
+    y_col='Label',
+    target_size=(224, 224),
+    color_mode='rgb',
+    class_mode='categorical',
+    batch_size=32,
+    shuffle=True,
+    seed=0,
+    rotation_range=30,
+    zoom_range=0.15,
+    width_shift_range=0.2,
+    height_shift_range=0.2,
+    shear_range=0.15,
+    horizontal_flip=True,
+    fill_mode="nearest"
+)
+
+
+
+import pandas as pd
+import os
+from pathlib import Path
+
+# Define the dataset path
+dataset_path = 'D:/MACHINE LEARNING'
+
+# Create a list with the filepaths for training and testing
+train_dir = Path(os.path.join(dataset_path, 'train'))
+train_filepaths = list(train_dir.glob(r'**/*.jpg'))
+
+test_dir = Path(os.path.join(dataset_path, 'test'))
+test_filepaths = list(test_dir.glob(r'**/*.jpg'))
+
+val_dir = Path(os.path.join(dataset_path, 'validation'))
+val_filepaths = list(val_dir.glob(r'**/*.jpg'))
+
+def image_processing(filepath):
+    """Create a DataFrame with the filepath and the labels of the pictures"""
+    labels = []
+    for file in filepath:
+        parts = os.path.normpath(file).split(os.sep)
+        if len(parts) > 1:
+            labels.append(parts[-2])
+        else:
+            labels.append("Unknown")
+
+    filepath = pd.Series(filepath, name='Filepath').astype(str)
+    labels = pd.Series(labels, name='Label')
+
+    # Concatenate filepaths and labels
+    df = pd.concat([filepath, labels], axis=1)
+
+    # Shuffle the DataFrame and reset index
+    df = df.sample(frac=1).reset_index(drop=True)
+    
+    return df
+
+# Create the DataFrames
+train_df = image_processing(train_filepaths)
+test_df = image_processing(test_filepaths)
+val_df = image_processing(val_filepaths)
+
+# Print the first few rows of each DataFrame to ensure they are correctly created
+print("Validation DataFrame:")
+print(val_df.head())
+
+# Check if 'Label' column exists in val_df
+print("Columns in Validation DataFrame:", val_df.columns)
+
+# Now, try to use flow_from_dataframe
+train_generator = tf.keras.preprocessing.image.ImageDataGenerator(
+    preprocessing_function=tf.keras.applications.mobilenet_v2.preprocess_input
+)
+
+val_generator = tf.keras.preprocessing.image.ImageDataGenerator(
+    preprocessing_function=tf.keras.applications.mobilenet_v2.preprocess_input
+)
+
+val_images = val_generator.flow_from_dataframe(
+    dataframe=val_df,
+    x_col='Filepath',
+    y_col='Label',
+    target_size=(224, 224),
+    color_mode='rgb',
+    class_mode='categorical',
+    batch_size=32,
+    shuffle=True,
+    seed=0,
+    rotation_range=30,
+    zoom_range=0.15,
+    width_shift_range=0.2,
+    height_shift_range=0.2,
+    shear_range=0.15,
+    horizontal_flip=True,
+    fill_mode="nearest"
+)
+
+
+
+import pandas as pd
+import os
+from pathlib import Path
+
+# Define the dataset path
+dataset_path = 'D:/MACHINE LEARNING'
+
+# Create a list with the filepaths for training and testing
+train_dir = Path(os.path.join(dataset_path, 'train'))
+train_filepaths = list(train_dir.glob(r'**/*.jpg'))
+
+test_dir = Path(os.path.join(dataset_path, 'test'))
+test_filepaths = list(test_dir.glob(r'**/*.jpg'))
+
+val_dir = Path(os.path.join(dataset_path, 'validation'))
+val_filepaths = list(val_dir.glob(r'**/*.jpg'))
+
+def image_processing(filepath):
+    """Create a DataFrame with the filepath and the labels of the pictures"""
+    labels = []
+    for file in filepath:
+        parts = os.path.normpath(file).split(os.sep)
+        if len(parts) > 1:
+            labels.append(parts[-2])
+        else:
+            labels.append("Unknown")
+
+    filepath = pd.Series(filepath, name='Filepath').astype(str)
+    labels = pd.Series(labels, name='Label')
+
+    # Concatenate filepaths and labels
+    df = pd.concat([filepath, labels], axis=1)
+
+    # Shuffle the DataFrame and reset index
+    df = df.sample(frac=1).reset_index(drop=True)
+    
+    return df
+
+# Create the DataFrames
+train_df = image_processing(train_filepaths)
+test_df = image_processing(test_filepaths)
+val_df = image_processing(val_filepaths)
+
+# Print the first few rows of each DataFrame to ensure they are correctly created
+print("Validation DataFrame:")
+print(val_df.head())
+
+# Check if 'Label' column exists in val_df
+print("Columns in Validation DataFrame:", val_df.columns)
+
+# Now, try to use flow_from_dataframe
+train_generator = tf.keras.preprocessing.image.ImageDataGenerator(
+    preprocessing_function=tf.keras.applications.mobilenet_v2.preprocess_input
+)
+
+val_generator = tf.keras.preprocessing.image.ImageDataGenerator(
+    preprocessing_function=tf.keras.applications.mobilenet_v2.preprocess_input
+)
+
+val_images = val_generator.flow_from_dataframe(
+    dataframe=val_df,
+    x_col='Filepath',
+    y_col='Label',
+    target_size=(224, 224),
+    color_mode='rgb',
+    class_mode='categorical',
+    batch_size=32,
+    shuffle=True,
+    seed=0,
+    rotation_range=30,
+    zoom_range=0.15,
+    width_shift_range=0.2,
+    height_shift_range=0.2,
+    shear_range=0.15,
+    horizontal_flip=True,
+    fill_mode="nearest"
+)
+
+
+
+test_images = test_generator.flow_from_dataframe(
+    dataframe=test_df,
+    x_col='Filepath',
+    y_col='Label',
+    target_size=(224, 224),
+    color_mode='rgb',
+    class_mode='categorical',
+    batch_size=32,
+    shuffle=False
+)
+
+
+
+pretrained_model = tf.keras.applications.MobileNetV2(
+    input_shape=(224, 224, 3),
+    include_top=False,
+    weights='imagenet',
+    pooling='avg'
+)
+pretrained_model.trainable = False
+
+
+
+inputs = pretrained_model.input
+
+x = tf.keras.layers.Dense(128, activation='relu')(pretrained_model.output)
+x = tf.keras.layers.Dense(128, activation='relu')(x)
+
+outputs = tf.keras.layers.Dense(36, activation='softmax')(x)
+
+model = tf.keras.Model(inputs=inputs, outputs=outputs)
+
+model.compile(
+    optimizer='adam',
+    loss='categorical_crossentropy',
+    metrics=['accuracy']
+)
+
+history = model.fit(
+    train_images,
+    validation_data=val_images,
+    batch_size = 32,
+    epochs=10,
+    callbacks=[
+        tf.keras.callbacks.EarlyStopping(
+            monitor='val_loss',
+            patience=2,
+            restore_best_weights=True
+        )
+    ]
+)
+
+
+
+pred = model.predict(test_images)
+pred = np.argmax(pred,axis=1)
+# Map the label
+labels = (train_images.class_indices)
+labels = dict((v,k) for k,v in labels.items())
+pred1 = [labels[k] for k in pred]
+pred1
+
+
+
+def output(location):
+    img=load_img(location,target_size=(224,224,3))
+    img=img_to_array(img)
+    img=img/255
+    img=np.expand_dims(img,[0])
+    answer=model.predict(img)
+    y_class = answer.argmax(axis=-1)
+    y = " ".join(str(x) for x in y_class)
+    y = int(y)
+    res = labels[y]
+    return res
+
+
+
+    img = output('../input/fruit-and-vegetable-image-recognition/test/cabbage/Image_1.jpg')
+img
+
+
+
+model.save('FV_1.h5')
