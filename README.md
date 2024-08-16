@@ -56,7 +56,7 @@ This project focuses on building a food calorie recognition system using deep le
 - **`FoodCalorieRecognition.h5`**: The saved deep learning model, serialized using `HDF5 (Hierarchical Data Format version 5) file format`.
 - **`streamlit_app.py`**: The main Python script to run the Streamlit web interface.
 - **`requirements.txt`**: A file listing all the necessary Python libraries for the project.
-- **`datasets/`**: Directory containing the dataset of labeled food images used for training and testing the model.
+- **`datasets`**: Directory containing the dataset of labeled food images used for training and testing the model.
 
 ## License
 
