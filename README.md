@@ -1,5 +1,3 @@
-Here's a detailed README template for the food calorie recognition project using Streamlit:
-
 ---
 
 # Food Calorie Recognition Project
